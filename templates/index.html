@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Backend</title>
+</head>
+
+<body>
+    {% if message %}
+    <p>{{ message }}</p>
+    {% endif %}
+    <form action="http://localhost:5000/students" method="post">
+        Student ID Number: <input type="text" name="student_number"><br>
+        Student name: <input type="text" name="name"><br>
+        Course Credits: <input type="text" name="credits"><br>
+        Degree:
+        <select name="degree" id="degree">
+            <option value="it">IT</option>
+            <option value="machine">Machine</option>
+        </select><br>
+        <input type="submit" value="Submit">
+    </form>
+</body>
+
+</html>
