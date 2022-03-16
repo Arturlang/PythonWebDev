@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Backend</title>
+</head>
+
+<body>
+    {% if message %}
+    <p>{{ message }}</p>
+    {% endif %}
+    <form action="/students" method="POST" id="addStudentForm" name="addStudentForm">
+        Student ID Number: <input type="text" name="student_number" id="student_number_input"><br>
+        Student name: <input type="text" name="name" id="name_input"><br>
+        Course Credits: <input type="text" name="credits" id="credits_input"><br>
+        Degree:
+        <select name="degree" id="degree" id="degree_input">
+            <option value="it">IT</option>
+            <option value="machine">Machine</option>
+        </select><br>
+        <input type="submit" value="Submit">
+    </form>
+</body>
+<script>
+    const alertMessage = "{{ message }}";
+    if (alertMessage != "None" && alertMessage != "") {
+        alert(alertMessage);
+    }
+    function SubmitForm() {
+        console.log("Submitting form!");
+        const formData = new FormData();
+        formData.append("student_number", document.getElementById("student_number_input").value);
+        formData.append("name", document.getElementById("name_input").value);
+        formData.append("credits", document.getElementById("credits_input").value);
+        formData.append("degree", document.getElementById("degree_input").value);
+        console.log(formData);
+        axios.post('/students', formData)
+        return false;
+    }
+</script>
+
+</html>
