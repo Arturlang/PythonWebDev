@@ -64,6 +64,7 @@ def StudentsData():
             # Check the string if it is a number
             if typeChecks[key] == int:
                 try:
+                    -
                     int(formData[key])
                 except ValueError:
                     message = "Please enter a number for " + key
@@ -116,7 +117,6 @@ def ReplaceStudent(StudentID):
         return (
             {"message": "The field after /students/ has to be a number"}, 400
         )
-
     # Replace the student with the same ID with data from request
     iterator = 0
     for student in allStudents:
