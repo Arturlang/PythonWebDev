@@ -1,5 +1,111 @@
 from flask import Flask, jsonify, render_template, request, redirect
-allStudents = [
+from flask_mongoengine import MongoEngine
+
+app = Flask(__name__)
+
+app.config["MONGODB_SETTINGS"] = {
+    "db": "student_db",
+    "host": "localhost",
+    "port": 27017
+}
+db = MongoEngine()
+db.init_app(app)
+
+
+class Student(db.Document):
+    student_number = db.IntField(required=True)
+    name = db.StringField(required=True)
+    credits = db.IntField()
+    degree = db.StringField()
+    # Document does not like _init being overridden
+    # def __init__(self, student_number, name, credits, degree):
+    #     self.student_number = student_number
+    #     self.name = name
+    #     self.credits = credits
+    #     self.degree = degree
+
+    def __iter__(self):
+        return iter(
+            {
+                "student_number": self.student_number,
+                "name": self.name,
+                "credits": self.credits,
+                "degree": self.degree
+            }
+        )
+
+    def __getitem__(self, item):
+        return getattr(self, item)
+
+
+class StudentHandler:
+    def GetAllStudents(self):
+        return Student.objects()
+
+    def GetStudent(self, student_number):
+        # Get the first student with the student number
+        student = Student.objects(student_number=student_number).first()
+        if student is not None:
+            return student
+        return None
+
+    def AddStudent(self, student):
+        student.save()
+
+    def RemoveStudentWithNum(self, student_number):
+        student = Student.objects(student_number=student_number).first()
+        if student is not None:
+            student.delete()
+            return True
+        return False
+
+    def RemoveStudentWithClass(self, student):
+        return self.RemoveStudentWithNum(student["student_number"])
+
+    def UpdateStudent(self, student):
+        students = Student.objects(student_number=student["student_number"])
+        if students is not None:
+            try:
+                students.update(
+                    student_number=student["student_number"],
+                    name=student["name"],
+                    credits=student["credits"],
+                    degree=student["degree"]
+                )
+                return True
+            except ValueError:
+                return False
+        return False
+
+    def JSONParse(self, input, callback):
+        student = None
+        try:
+            student = Student(
+                student_number=input["student_number"],
+                name=input["name"],
+                credits=input["credits"],
+                degree=input["degree"]
+            )
+            return callback(student)
+        except ValueError:
+            return jsonify({"error": "Invalid JSON"})
+
+
+def ResetDatabase(data, resetDatabase):
+    if resetDatabase:
+        print("Resetting database")
+        Student.drop_collection()
+    # Delete all students in MongoDB
+    global allStudents
+    print('Adding initial students')
+    for student in data:
+        allStudents.JSONParse(student, allStudents.AddStudent)
+    # allStudents.AddStudent(Student("Alice Brown", 123123, 130, "it"))
+    # allStudents.AddStudent(Student("Bob Jones", 111222, 157, "it"))
+    # allStudents.AddStudent(Student("Richard Brown", 333444, 57, "machine"))
+
+
+studentDict = [
     {
         "student_number": 123123,
         "name": "Alice Brown",
@@ -19,9 +125,13 @@ allStudents = [
                 "degree": "machine"
     }
 ]
-app = Flask(__name__)
+
 # Global message because I haven't found a better way to do this
 headerMessage = ''
+allStudents = StudentHandler()
+resetDatabase = False
+if resetDatabase:
+    ResetDatabase(studentDict, True)
 
 
 @app.route('/')
@@ -35,7 +145,7 @@ def MainPage():
     return render_template(
         "home.html",
         message=localVarMessage,
-        students=allStudents
+        students=allStudents.GetAllStudents()
     )
 
 
@@ -80,15 +190,16 @@ def GetFormData(request):
     # Meant for direct requests
 
     if request.is_json:
-        allStudents.append(request.json)
+        allStudents.JSONParse(request.json, allStudents.AddStudent)
         return "Student added!", 200
     # Check if the form has all entries in AllStudents
     # Caching data so we can modify it
     formData = {}
     for entry in request.form:
         formData[entry] = request.form.get(entry)
-    for list in allStudents:
-        for key in list:
+    studentList = allStudents.GetAllStudents()
+    for student in studentList:
+        for key in student:
             for objectKey in typeChecks:
                 if objectKey not in formData:
                     return "Missing object key", 400
@@ -107,24 +218,20 @@ def GetFormData(request):
                 return key + " cannot be a " + \
                     str(type(formData[key])), 400
             # Check if the student number is unique
-            if key == "student_number" and formData[key] == list[key]:
+            if key == "student_number" and formData[key] == student[key]:
                 # Replace if existing
-                allStudents[allStudents.index(list)] = formData
-                return "Existing student replaced!", 200
-    newStudent = {
-        "student_number": int(formData["student_number"]),
-        "name": formData["name"],
-        "credits": int(formData["credits"]),
-        "degree": formData["degree"]
-    }
-    allStudents.append(newStudent)
+                if allStudents.UpdateStudent(formData):
+                    return "Existing student replaced!", 200
+                return "Failed to replace existing student!", 400
+    allStudents.JSONParse(formData, allStudents.AddStudent)
     return "Student added!", 200
 
 
 @ app.route("/students/degree/<degree>", methods=["GET"])
 def StudentsDegree(degree):
     output = []
-    for student in allStudents:
+    studentList = allStudents.GetAllStudents()
+    for student in studentList:
         if student["degree"] == degree:
             output.append(student)
     return jsonify(output)
@@ -155,25 +262,25 @@ def ReplaceStudent(StudentID, argMethod=False):
         )
     # Replace the student with the same ID with data from request
     iterator = 0
-    for student in allStudents:
+    studentList = allStudents.GetAllStudents()
+    for student in studentList:
         if student["student_number"] == StudentID \
                 or request.json and \
                 request.json["student_number"] == student["student_number"]:
-
-            if method == "PUT":
-                allStudents[iterator] = request.json
-                return ({"message": "Student replaced"}, 200)
-            # Not necessary but makes it more readable
-            if method == "PATCH":
-                allStudents[iterator].update(request.json)
-                return ({"message": "Collection updated"}, 200)
+            if method == "PUT" or method == "PATCH":
+                if allStudents.JSONParse(
+                        request.json,
+                        allStudents.UpdateStudent):
+                    return ({"message": "Student replaced"}, 200)
+                return ({"message": "Failed to replace student"}, 400)
             if method == "DELETE":
-                allStudents.pop(iterator)
-                return ({"message": "Student deleted"}, 200)
+                if allStudents.RemoveStudentWithClass(student):
+                    return ({"message": "Student deleted"}, 200)
+                return ({"message": "Failed to delete student"}, 400)
         iterator += 1
     if method == "DELETE":
         return ({"message": "Student not found"}, 404)
-    allStudents.insert(0, request.json)
+    allStudents.JSONParse(request.json, allStudents.UpdateStudent)
     return ({"message": "Student added"}, 201)
 
 
@@ -208,7 +315,8 @@ def ModifyStudent(studentID, msg=""):
 
     if request.method == "GET":
         if studentID:
-            for students in allStudents:
+            studentList = allStudents.GetAllStudents()
+            for students in studentList:
                 if students["student_number"] == int(studentID):
                     student = students
         if not infoMessage or infoMessage == "":
@@ -222,8 +330,6 @@ def HandleReplaceForm():
     response = GetFormData(request)
     global headerMessage
     headerMessage = response[0]
-    if response[1] != 200:
-        return False
     return redirect('/home', code=302)
 
 

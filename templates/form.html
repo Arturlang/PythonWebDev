@@ -33,7 +33,7 @@
 <form action="{{ target }}" method="POST" id="addStudentForm" name="addStudentForm">
     Student ID Number: 
     <input type="text" name="student_number" id="student_number_input" 
-        {% if student.student_number %}value="{{ student.student_number }}"{% endif %}
+        {% if student.student_number %}value="{{ student.student_number }}" readonly="readonly"{% endif %}
     >
     <br>
     Student name: <input type="text" name="name" id="name_input"
