@@ -1,22 +1,59 @@
 {% extends 'base.html' %}
 
+{% block scripts %}
+<script>
+    // Handle the select filtering the table contents
+    AddSelectEventListener();
+    function AddSelectEventListener() {
+        console.log("AddSelectEventListener() ran");
+        const degreeSelect = document.getElementById("degreeSortInput");
+        degreeSelect.addEventListener("change", (event) => {
+            const degree = event.target.value;
+            const table = document.getElementById("studentTable");
+            const rows = table.rows;
+            // Note that we skip the first row, which is the header
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                const studentDegree = row.cells[3].innerHTML;
+                if (degree == "all") {
+                    row.style.display = "";
+                    continue;
+                }
+                if (studentDegree !== degree) {
+                    row.style.display = "none";
+                } else {
+                    row.style.display = "";
+                }
+            }
+        });
+    };
+</script>
+{% endblock %}
+
 {% block content %}
-<table>
-    <!-- Use flask to generate a table -->
-    <tr>
-        <th>Student ID</th>
-        <th>Student Name</th>
-        <th>Credits</th>
-        <th>Degree</th>
-    </tr>
-    {% for student in students %}
-    <tr>
-        <td><a href="students/{{ student.student_number }}/edit">{{ student.student_number }}</a></td>
-        <td>{{ student.name }}</td>
-        <td>{{ student.credits }}</td>
-        <td>{{ student.degree }}</td>
-        <td><a href="students/{{ student.student_number }}/delete">Delete</a></td>
-    </tr>
-    {% endfor %}
-</table>
+<div>
+    <select name="degree" id="degreeSortInput">
+        <option value="all">All</option>
+        <option value="it">IT</option>
+        <option value="machine">Machine</option>
+    </select>
+    <table id="studentTable">
+
+        <tr>
+            <th>Student ID</th>
+            <th>Student Name</th>
+            <th>Credits</th>
+            <th>Degree</th>
+        </tr>
+        {% for student in students %}
+        <tr>
+            <td><a href="students/{{ student.student_number }}/edit">{{ student.student_number }}</a></td>
+            <td>{{ student.name }}</td>
+            <td>{{ student.credits }}</td>
+            <td>{{ student.degree }}</td>
+            <td><a href="students/{{ student.student_number }}/delete">Delete</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
 {% endblock %}

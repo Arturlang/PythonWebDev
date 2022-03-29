@@ -2,33 +2,7 @@
 {% block header %}
 <h1>{% block title %}Add a student{% endblock %}</h1>
 {% endblock %}
-{% block scripts %}
-<!-- <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" />
-<script>
-    const alertMessage = "{{ message }}";
-    if (alertMessage !== "None" && alertMessage !== "") {
-        alert(alertMessage);
-    }
-    const targetURL = "{{ target }}";
-    const method = "{{ method }}";
-    function SubmitForm() {
-        console.log("Submitting form!");
-        const formData = new FormData();
-        formData.append("student_number", document.getElementById("student_number_input").value);
-        formData.append("name", document.getElementById("name_input").value);
-        formData.append("credits", document.getElementById("credits_input").value);
-        formData.append("degree", document.getElementById("degree_input").value);
-        console.log(formData);
-        // axios.post(targetURL, formData)
-        axios({
-            method: method,
-            url: targetURL,
-            data: formData,
-        })
-        return false;
-    }
-</script> -->
-{% endblock %}
+
 {% block content %}
 <form action="{{ target }}" method="POST" id="addStudentForm" name="addStudentForm">
     Student ID Number: 
