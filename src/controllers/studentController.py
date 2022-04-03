@@ -236,3 +236,14 @@ def JSONParse(input, callback):
         return callback(student)
     except ValueError:
         return ('Invalid data supplied', 400)
+
+
+# Can't be in the database folder due to circular imports
+def ResetDatabase(document, dataToAdd, resetDatabase):
+    if resetDatabase:
+        print("Resetting database")
+        document.drop_collection()
+    # Delete all students in MongoDB
+    print('Adding initial students')
+    for student in dataToAdd:
+        JSONParse(student, AddStudent)
