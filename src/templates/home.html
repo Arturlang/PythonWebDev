@@ -47,11 +47,11 @@
         </tr>
         {% for student in students %}
         <tr>
-            <td><a href="students/{{ student.student_number }}/edit">{{ student.student_number }}</a></td>
+            <td><a href="edit/{{ student.student_number }}">{{ student.student_number }}</a></td>
             <td>{{ student.name }}</td>
             <td>{{ student.credits }}</td>
             <td>{{ student.degree }}</td>
-            <td><a href="students/{{ student.student_number }}/delete">Delete</a></td>
+            <td><a href="delete/{{ student.student_number }}">Delete</a></td>
         </tr>
         {% endfor %}
     </table>

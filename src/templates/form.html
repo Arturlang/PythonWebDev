@@ -7,20 +7,20 @@
 <form action="{{ target }}" method="POST" id="addStudentForm" name="addStudentForm">
     Student ID Number: 
     <input type="text" name="student_number" id="student_number_input" 
-        {% if student.student_number %}value="{{ student.student_number }}" readonly="readonly"{% endif %}
+        {% if student and student.student_number %}value="{{ student.student_number }}" readonly="readonly"{% endif %}
     >
     <br>
     Student name: <input type="text" name="name" id="name_input"
-        {% if student.name %}value="{{ student.name }}"{% endif %}
+        {% if student and student.name %}value="{{ student.name }}"{% endif %}
     >
     <br>
     Course Credits: <input type="text" name="credits" id="credits_input"
-        {% if student.credits %}value="{{ student.credits }}"{% endif %}
+        {% if student and student.credits %}value="{{ student.credits }}"{% endif %}
     >
     <br>
     Degree:
     <select name="degree" id="degree" id="degree_input"
-        {% if student.degree %}value="{{ student.degree }}"{% endif %}
+        {% if student and student.degree %}value="{{ student.degree }}"{% endif %}
     >
         <option value="it">IT</option>
         <option value="machine">Machine</option>
