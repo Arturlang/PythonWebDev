@@ -1,7 +1,7 @@
 from flask import Blueprint
-from controllers.studentController import ShowAddStudentForm, \
-    ModifyStudentForm, RedirectStudentTable, ShowStudentTable, \
-    DeleteStudent
+from controllers.studentController import DeleteStudent
+from views.tableHandling import ShowAddStudentForm, \
+    RedirectStudentTable, ShowStudentTable, ModifyStudentForm
 
 
 studentRoutes = Blueprint('studentRoutes', __name__)
